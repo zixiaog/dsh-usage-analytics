@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Usage analytics",
+    "description": "Adds a peak/off-peak billing dock under the composer and a full usage dashboard: cost, tokens, cache hit rate, model mix, peak/valley split and recent steps across every session."
+  }
+}

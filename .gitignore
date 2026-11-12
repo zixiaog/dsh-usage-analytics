@@ -1,0 +1,39 @@
+# Dependencies / build output
+node_modules/
+dist/
+out/
+build/
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# npm cache and packed tarballs produced while publishing from a sandboxed workspace
+.npm-cache/
+.npm-logs/
+*.tgz
+
+# Local env / editor
+.env
+.env.*
+!.env.example
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary / local test artifacts
+*.tmp
+*.bak
+*.orig
+test/.tmp/
+test/.tmp-*/

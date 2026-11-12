@@ -1,0 +1,5 @@
+# dsh-usage-analytics bundle patch
+# 只插入本插件一行：Host 侧注册用量采集与 HTTP API，Client 侧注册输入框用量坞与「用量分析」面板。
+- insert:
+    - id: usage-analytics
+      name: 'dsh-usage-analytics'

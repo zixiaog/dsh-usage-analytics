@@ -1,0 +1,60 @@
+{
+  "name": "dsh-usage-analytics",
+  "version": "0.1.0",
+  "description": "DeepSeek Harness usage analytics: a peak/off-peak billing dock under the composer and a full dashboard for cross-session token, cost, model and peak/valley statistics, with durable history and live balance.",
+  "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "usage",
+    "token",
+    "cost",
+    "billing",
+    "dashboard",
+    "analytics",
+    "peak-valley"
+  ],
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "lib/*.js",
+    "locale/*.json",
+    "icon.svg",
+    "README.md",
+    "README.zh-CN.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node scripts/test.mjs",
+    "check": "node scripts/check.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-conversation"
+      ]
+    }
+  }
+}
