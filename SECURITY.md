@@ -1,4 +1,4 @@
-# Security policy
+﻿# Security policy
 
 ## Supported versions
 
@@ -11,7 +11,7 @@
 
 Please do not report security issues in a public issue.
 
-Use GitHub's [private vulnerability reporting](https://github.com/OWNER/dsh-usage-analytics/security/advisories/new)
+Use GitHub's [private vulnerability reporting](https://github.com/zixiaog/dsh-usage-analytics/security/advisories/new)
 for this repository. If that is unavailable, contact the maintainers through the contact
 details on their GitHub profiles.
 

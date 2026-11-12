@@ -1,10 +1,10 @@
-# dsh-usage-analytics
+﻿# dsh-usage-analytics
 
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![npm](https://img.shields.io/npm/v/dsh-usage-analytics.svg)](https://www.npmjs.com/package/dsh-usage-analytics)
 [![DSH](https://img.shields.io/badge/DSH-0.2.x-4d6bfe)](https://github.com/deepseek-ai)
 [![platform](https://img.shields.io/badge/platform-DSH%20Web%20UI-lightgrey)](#环境要求)
-[![check](https://github.com/OWNER/dsh-usage-analytics/actions/workflows/check.yml/badge.svg)](https://github.com/OWNER/dsh-usage-analytics/actions/workflows/check.yml)
+[![check](https://github.com/zixiaog/dsh-usage-analytics/actions/workflows/check.yml/badge.svg)](https://github.com/zixiaog/dsh-usage-analytics/actions/workflows/check.yml)
 
 DeepSeek Harness（DSH）用量插件：在输入框下方挂一条**峰谷分时计费坞**，再配一个建立在全部会话 Token 与成本历史之上的**完整用量分析面板**。
 
@@ -191,10 +191,10 @@ cost = input × price.input
 | --- | --- | --- | --- |
 | `prices` | object | 内置价格表 | 按模型配置的人民币 / 100 万 Token 单价，字段为 `input`、`cacheRead`、`cacheWrite`、`output`。某个模型一旦出现在这里就整行替换内置值——四个字段都要写，缺的按 `0` 处理。 |
 | `peakHours` | string 数组 | 工作日 `09:00-12:00`、`14:00-18:00` | 按全价计费的时段窗（北京时间），窗口之外算谷时。也接受 `peakWindows`（`[开始分钟, 结束分钟]` 对）；两者都合法时以 `peakWindows` 为准。 |
-| `storagePath` | string | `<DSH_HOME>/storages/usage-analytics.jsonl` | 历史文件路径。建议写绝对路径——相对路径按 DSH 进程的工作目录解析。也可以直接给目录，或改用 `storageDir` 键。 |
+| `storagePath` | string | `<DSH_HOME>/storages/usage-analytics.jsonl` | 历史文件路径。绝对路径原样使用；相对路径按 `DSH_HOME` 解析（所以 `storages/usage-analytics.jsonl` 会留在 DSH 数据目录里）。也可以直接给目录，或改用 `storageDir` 键。 |
 | `debug` | boolean | `false` | 输出详细的 Host 侧日志（回填进度、计价判定、余额请求失败原因）。平时保持关闭，排查问题时再打开。 |
 | `historyLimit` | number | `40000` | 存储的步骤记录软上限（最小 `1000`）。超出后裁掉最旧的记录。 |
-| `peakDays` | number 数组 | `[1, 2, 3, 4, 5]` | 可能处于峰时的星期，`1` = 周一 … `7` = 周日（与 `Date#getUTCDay` 一致）。默认周末全天谷时。 |
+| `peakDays` | number 数组 | `[1, 2, 3, 4, 5]` | 可能处于峰时的星期，用 `Date#getUTCDay` 编号（`0` = 周日 … `6` = 周六）。默认周末全天谷时。 |
 | `valleyFactor` | number | `0.5` | 谷时相对峰时价格的折扣系数，取值被夹在 `0`–`1`。 |
 
 `config` 是整体替换、不做深合并：只覆盖一个键时，其余你关心的键要么一并写出，要么就采用默认值。改完文件后重启 DSH（或禁用/启用一次插件）让配置生效。

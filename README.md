@@ -1,10 +1,10 @@
-# dsh-usage-analytics
+﻿# dsh-usage-analytics
 
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![npm](https://img.shields.io/npm/v/dsh-usage-analytics.svg)](https://www.npmjs.com/package/dsh-usage-analytics)
 [![DSH](https://img.shields.io/badge/DSH-0.2.x-4d6bfe)](https://github.com/deepseek-ai)
 [![platform](https://img.shields.io/badge/platform-DSH%20Web%20UI-lightgrey)](#requirements)
-[![check](https://github.com/OWNER/dsh-usage-analytics/actions/workflows/check.yml/badge.svg)](https://github.com/OWNER/dsh-usage-analytics/actions/workflows/check.yml)
+[![check](https://github.com/zixiaog/dsh-usage-analytics/actions/workflows/check.yml/badge.svg)](https://github.com/zixiaog/dsh-usage-analytics/actions/workflows/check.yml)
 
 A DeepSeek Harness (DSH) plugin that puts a **peak/off-peak billing dock** under the composer and a **full usage dashboard** on top of every session's token and cost history.
 
@@ -191,10 +191,10 @@ The prices above are the built-in defaults for `deepseek-chat`, shown as an illu
 | --- | --- | --- | --- |
 | `prices` | object | built-in table | Per-model token prices in CNY per 1M tokens, with `input`, `cacheRead`, `cacheWrite` and `output`. An entry replaces that model's built-in row as a whole — include all four fields, since omitted ones become `0`. |
 | `peakHours` | string array | `09:00-12:00`, `14:00-18:00` on weekdays | Windows billed at full price in Beijing time; everything outside them is valley time. A `peakWindows` array of `[startMinute, endMinute]` pairs is accepted as an alternative and wins when both are valid. |
-| `storagePath` | string | `<DSH_HOME>/storages/usage-analytics.jsonl` | History file. An absolute path is recommended — a relative one is resolved against the DSH process working directory. A directory path, or the `storageDir` key, is also accepted. |
+| `storagePath` | string | `<DSH_HOME>/storages/usage-analytics.jsonl` | History file. An absolute path is used as-is; a relative one is resolved under `DSH_HOME` (so `storages/usage-analytics.jsonl` stays inside the DSH data directory). A directory path, or the `storageDir` key, is also accepted. |
 | `debug` | boolean | `false` | Writes verbose host-side logging (backfill progress, pricing decisions, balance failures). Leave it off unless you are diagnosing something. |
 | `historyLimit` | number | `40000` | Soft cap on stored step records (minimum `1000`). Past the cap, the oldest records are trimmed. |
-| `peakDays` | number array | `[1, 2, 3, 4, 5]` | Weekdays that can be peak, `1` = Monday … `7` = Sunday (`Date#getUTCDay` numbering). Weekends are valley by default. |
+| `peakDays` | number array | `[1, 2, 3, 4, 5]` | Weekdays that can be peak, using `Date#getUTCDay` numbering (`0` = Sunday … `6` = Saturday). With the default, weekends are valley all day. |
 | `valleyFactor` | number | `0.5` | Multiplier applied to the price in valley hours, clamped to `0`–`1`. |
 
 A `config` block is replaced as a whole, not merged: if you override one key, restate the others you care about or leave them at their defaults. After editing the file, restart DSH (or disable/enable the plugin) for the change to take effect.

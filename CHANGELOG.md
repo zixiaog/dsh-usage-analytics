@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 
 All notable changes to this project are documented in this file.
 
@@ -49,4 +49,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A failed balance lookup degrades silently to `—` instead of surfacing an error in the
   composer or the dashboard.
 
-[0.1.0]: https://github.com/OWNER/dsh-usage-analytics/releases/tag/v0.1.0
+[0.1.0]: https://github.com/zixiaog/dsh-usage-analytics/releases/tag/v0.1.0
