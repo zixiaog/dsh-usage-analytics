@@ -16,6 +16,8 @@ jobs:
   check-dsh:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
       - name: Read the DSH version this plugin was verified against
         id: verified
         run: |
