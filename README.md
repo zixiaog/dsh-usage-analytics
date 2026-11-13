@@ -297,6 +297,7 @@ Development notes, code layout and the manual test checklist are in [CONTRIBUTIN
 - **The first scan reads session logs.** Backfill decodes existing session history under a time budget, so after installing (or after deleting the history files) a large profile converges over a few sync rounds; later starts only catch up on new steps.
 - **Balance needs a signed-in DeepSeek account.** When DSH has no platform session, or the balance endpoint cannot be reached, the UI shows `—` and does not raise an error.
 - **Costs are estimates.** See [How the bill is estimated](#how-the-bill-is-estimated); the official bill always wins.
+- **A few cents of drift are expected.** The platform usage page lags ~5 minutes, the plugin's own backfill runs on a 60-second cycle, failed `web_search` / `web_fetch` calls are still counted locally (the platform only bills successful ones), and Search/Fetch fees are estimated from tool calls rather than read from the bill. On a normal day the gap is under ~1%; the plugin exposes `modelCost` and `feeCost` separately so you can see which part moved.
 - **History is capped.** The default 40,000-record soft cap (`historyLimit`) trims the oldest steps, so the `All` range is bounded by what is still stored.
 - **Only usage DSH records is counted.** Tokens spent outside this DSH profile, or by other tools sharing the same account, do not appear here.
 - **DSH internals can move.** The plugin targets DSH `0.2.x` service and storage contracts; a DSH upgrade that changes them may require a matching plugin update.
