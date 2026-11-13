@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { createStore } from '../lib/store.js'
+import { createStore, prepareFoldVersion } from '../lib/store.js'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const tmpRoot = path.join(here, '.tmp')
@@ -90,6 +90,23 @@ test('store：价格表版本变化时重算历史成本并写回文件', async 
   const reloaded = createStore({ dir })
   await reloaded.load({ reprice: (record) => (record.pv === 'v2' ? null : { cost: 0, pk: 0, pv: 'v2' }) })
   assert.equal(reloaded.records[0].cost, 0.5, '已重算的记录不会再被改写')
+})
+
+test('prepareFoldVersion：折叠逻辑升级时重置回填水位，只执行一次', async () => {
+  const dir = await makeDir('store-fold')
+  const store = createStore({ dir })
+  await store.load()
+  store.updateSessionMeta('s1', { label: 'default', seq: 42 })
+  store.updateSessionMeta('s2', { label: 'other', seq: 7 })
+  assert.equal(prepareFoldVersion(store, 2), true, '第一次升级应触发重扫')
+  assert.equal(store.sessionMeta('s1').seq, -1)
+  assert.equal(store.sessionMeta('s2').seq, -1)
+  assert.equal(store.meta.foldVersion, 2)
+  assert.equal(prepareFoldVersion(store, 2), false, '版本一致时不再重扫')
+  await store.flush()
+  const reloaded = createStore({ dir })
+  await reloaded.load()
+  assert.equal(reloaded.meta.foldVersion, 2, 'foldVersion 持久化')
 })
 
 test.after(async () => {

@@ -12,9 +12,9 @@
 import nodePath from 'node:path'
 import { createHandler } from './lib/api.js'
 import { createPricing } from './lib/pricing.js'
-import { createStore } from './lib/store.js'
+import { createStore, prepareFoldVersion } from './lib/store.js'
 import { createSync } from './lib/sync.js'
-import { recordsFromEvent } from './lib/scan.js'
+import { FOLD_VERSION, recordsFromEvent } from './lib/scan.js'
 import { resolveStorageDir, sessionLabel } from './lib/util.js'
 
 export const name = 'dsh-usage-analytics'
@@ -62,6 +62,12 @@ export function apply(ctx, config = {}) {
         pv: pricing.version,
       }
     },
+  }).then(() => {
+    // 折叠逻辑升级（例如新增按次费用记录）：重置回填水位，让下一轮 sync 重扫会话日志。
+    // 旧记录按 sid#seq 去重，不会被重复计入；只会补出新类型的记录。
+    if (prepareFoldVersion(store, FOLD_VERSION)) {
+      log(`fold version -> ${FOLD_VERSION}: backfill watermarks reset for a full re-scan`)
+    }
   }).catch((error) => {
     console.error('[usage-analytics] 载入历史失败：', error)
   })

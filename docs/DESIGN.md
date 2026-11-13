@@ -308,6 +308,13 @@ priced with). `store.load({ reprice })` recomputes `cost` / `pk` for records who
 stale and rewrites the JSONL once; token counts are untouched. This is how the 0.2.0 price fix
 corrected every historical record without re-reading session logs.
 
+**Adding a record type on upgrade.** A change to what the fold emits (0.2.1 added fee records)
+would be invisible to existing installs, because their backfill watermarks already sit at the
+end of every session. `scan.FOLD_VERSION` names the fold-logic generation; `prepareFoldVersion`
+compares it with the persisted `meta.foldVersion`, resets every session watermark to `-1` when it
+differs, and lets the next sync re-read the logs. Appends deduplicate by `sid#seq`, so only the
+new record types are added — existing token records are never counted twice.
+
 **Per-request fees (search / fetch).** Search and Fetch are billed per successful request at
 CNY 5 / 1,000 (¥0.005 each), with no peak/valley split. `foldSessionEvents` also turns
 `tool/call` events named `web_search` / `web_fetch` into fee records
