@@ -262,43 +262,55 @@ Beijing-time (UTC+8, no DST) schedule:
 
 | Period | Window | Rate |
 | --- | --- | --- |
-| Peak | Monday–Friday `09:00–12:00` and `14:00–18:00` | 100% |
-| Valley | all remaining time, plus all day Saturday / Sunday | `valleyFactor` (0.5 by default) |
+| Peak | Monday–Friday `09:00–12:00` and `14:00–18:00`, excluding Chinese public holidays | 100% |
+| Valley | all remaining time, plus all day Saturday / Sunday / public holidays | `valleyFactor` (0.5 by default) |
 
 Each step is classified by its own timestamp (`t`), not by when the dashboard is opened, so
 history keeps the price it was actually billed at. Windows are configurable through
-`peakWindows` (minutes from midnight) and `peakDays` (weekday numbers).
+`peakWindows` (minutes from midnight) and `peakDays` (weekday numbers); public holidays go in
+`offPeakDates` (`['YYYY-MM-DD']`, Beijing time) because a plugin cannot infer the calendar.
 
 ### 5.2 Formula
 
-Prices are CNY per 1 million tokens, per model:
+Prices are CNY per 1 million tokens, per model (peak rates; valley applies `valleyFactor`):
 
 ```text
-stepCost = ( input     × price.input
+stepCost = ( missInput × price.input
            + cacheRead × price.cacheRead
            + cacheWrite × price.cacheWrite
            + output    × price.output ) / 1_000_000
          × (peak ? 1 : valleyFactor)
 ```
 
-The default table in `lib/pricing.js` is:
+The default table in `lib/pricing.js` mirrors the official
+[DeepSeek pricing page](https://api-docs.deepseek.com/quick_start/pricing) (`PRICE_TABLE_VERSION =
+2026-11-13.official`):
 
-| Model key | input | cacheRead | cacheWrite | output |
+| Model key | input (miss) | cacheRead (hit) | cacheWrite | output |
 | --- | --- | --- | --- | --- |
-| `deepseek-v4-pro` | 4 | 1 | 4 | 16 |
-| `deepseek-reasoner` | 4 | 1 | 4 | 16 |
-| `deepseek-chat` | 2 | 0.5 | 2 | 8 |
-| `deepseek-flash` | 2 | 0.5 | 2 | 8 |
-| `default` | 2 | 0.5 | 2 | 8 |
+| `deepseek-flash`, `deepseek-v4-flash*` | 2 | 0.04 | 0 | 8 |
+| `deepseek-v4-pro` | 9 | 0.30 | 0 | 27 |
+| `deepseek-chat` (legacy) | 2 | 0.04 | 0 | 8 |
+| `deepseek-reasoner` (legacy) | 9 | 0.30 | 0 | 27 |
+| `default` | 2 | 0.04 | 0 | 8 |
+
+Cache hits are ~99 % of the token count on a long conversation, so `cacheRead` is the
+cost-dominating column; treating it like the miss price overstates the bill by roughly an order
+of magnitude. DeepSeek bills cache writes inside the miss price, hence `cacheWrite = 0`.
 
 Model matching is deliberately forgiving: exact id first, then the longest prefix match
 (so `deepseek-v4-pro-2026...` lands on `deepseek-v4-pro`), then a heuristic on `reasoner` /
 `pro` versus `flash` / `chat`, then `default`. This keeps derived or dated model ids priced
 instead of silently costing zero.
 
+**Re-pricing on upgrade.** Each stored record carries `pv` (the `PRICE_TABLE_VERSION` it was
+priced with). `store.load({ reprice })` recomputes `cost` / `pk` for records whose `pv` is
+stale and rewrites the JSONL once; token counts are untouched. This is how the 0.2.0 price fix
+corrected every historical record without re-reading session logs.
+
 > The result is an **estimate**. DSH may not record every cache write, the provider may
-> round differently, and prices change over time. The plugin never claims to reproduce the
-> official bill.
+> round differently, public holidays need to be configured, and prices change over time. The
+> plugin never claims to reproduce the official bill.
 
 ### 5.3 Configuration
 
@@ -307,8 +319,9 @@ The plugin row in the profile's `cordis.patch.yml` accepts:
 ```yaml
 config:
   prices:
-    deepseek-chat: { input: 2, cacheRead: 0.5, cacheWrite: 2, output: 8 }
+    deepseek-flash: { input: 2, cacheRead: 0.04, cacheWrite: 0, output: 8 }
   peakHours: ['09:00-12:00', '14:00-18:00']
+  offPeakDates: ['2026-10-01', '2026-10-02']
   storagePath: '/path/to/usage-analytics.jsonl'
   debug: false
 ```

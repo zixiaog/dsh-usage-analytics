@@ -50,7 +50,19 @@ export function apply(ctx, config = {}) {
   const sync = createSync({ ctx, store, pricing, log })
   const handler = createHandler({ ctx, store, pricing, sync, config: cfg, log })
 
-  const ready = store.load().catch((error) => {
+  const ready = store.load({
+    // 价格表版本升级后，历史记录按新价格重算一次并写回文件；
+    // token 数、时间、模型都还在记录里，重算不需要重读会话日志。
+    reprice: (record) => {
+      if (record.pv === pricing.version) return null
+      const time = Number(record.t) || 0
+      return {
+        cost: pricing.costOf(record, record.m, time),
+        pk: pricing.isPeak(time) ? 1 : 0,
+        pv: pricing.version,
+      }
+    },
+  }).catch((error) => {
     console.error('[usage-analytics] 载入历史失败：', error)
   })
 

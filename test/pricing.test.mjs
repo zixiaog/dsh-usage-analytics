@@ -27,11 +27,30 @@ test('峰时窗口：周末全天谷时', () => {
 
 test('价格匹配：精确 > 最长前缀 > 语义回退', () => {
   const pricing = createPricing()
-  assert.equal(pricing.priceFor('deepseek-v4-pro').output, 16)
-  assert.equal(pricing.priceFor('deepseek-v4-pro-2026').output, 16, '前缀匹配')
-  assert.equal(pricing.priceFor('some-reasoner-model').output, 16, 'reasoner 回退')
+  assert.equal(pricing.priceFor('deepseek-v4-pro').output, 27)
+  assert.equal(pricing.priceFor('deepseek-v4-pro-2026').output, 27, '前缀匹配')
+  assert.equal(pricing.priceFor('some-reasoner-model').output, 27, 'reasoner 回退')
   assert.equal(pricing.priceFor('some-flash-model').output, 8, 'flash 回退')
   assert.equal(pricing.priceFor('unknown-model').output, 8, '默认档')
+})
+
+test('官方价格：flash 缓存命中 0.04 元/M、未命中 2 元/M、输出 8 元/M（峰时）', () => {
+  const pricing = createPricing()
+  const peakTime = beijingTime(2026, 11, 12, 10, 0)
+  const usage = { inputTokens: 2_286_525, cacheReadTokens: 223_072_000, outputTokens: 488_578 }
+  // 2.286525×2 + 223.072×0.04 + 0.488578×8 ≈ 17.40 元
+  const cost = pricing.costOf(usage, 'deepseek-flash', peakTime)
+  assert.ok(Math.abs(cost - 17.4046) < 0.001, `flash 峰时成本应约 17.40，实际 ${cost}`)
+  const valley = pricing.costOf(usage, 'deepseek-flash', beijingTime(2026, 11, 12, 3, 0))
+  assert.ok(Math.abs(valley - cost / 2) < 1e-9, '谷时是峰时的一半')
+  // 缓存写入不单独收费
+  assert.equal(pricing.priceFor('deepseek-flash').cacheWrite, 0)
+})
+
+test('offPeakDates：法定节假日全天按谷时', () => {
+  const pricing = createPricing({ offPeakDates: ['2026-11-12'] })
+  assert.equal(pricing.isPeak(beijingTime(2026, 11, 12, 10, 0)), false, '节假日工作日峰时窗口内也算谷时')
+  assert.equal(pricing.isPeak(beijingTime(2026, 11, 13, 10, 0)), true, '第二天恢复峰时')
 })
 
 test('成本：谷时是峰时的一半，缓存命中按命中价', () => {
@@ -41,8 +60,8 @@ test('成本：谷时是峰时的一半，缓存命中按命中价', () => {
   const valleyTime = beijingTime(2026, 11, 12, 3, 0)
   const peakCost = pricing.costOf(usage, 'deepseek-v4-pro', peakTime)
   const valleyCost = pricing.costOf(usage, 'deepseek-v4-pro', valleyTime)
-  assert.equal(peakCost, 4 + 1 + 16)
-  assert.equal(valleyCost, (4 + 1 + 16) / 2)
+  assert.ok(Math.abs(peakCost - (9 + 0.3 + 27)) < 1e-9)
+  assert.ok(Math.abs(valleyCost - (9 + 0.3 + 27) / 2) < 1e-9)
 })
 
 test('config.prices 覆盖默认价格表', () => {

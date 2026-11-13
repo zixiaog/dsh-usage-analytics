@@ -173,26 +173,42 @@ dsh plugin --profile <profile> add ./dsh-usage-analytics-0.1.0.tgz
 
 ### 计价怎么算
 
-DeepSeek 在**峰时**和**谷时**单价不同。本插件按北京时间（UTC+8）的规则划分：
+价格取自 DeepSeek 官方[价格页](https://api-docs.deepseek.com/zh-cn/quick_start/pricing)。峰谷按北京时间（UTC+8）划分：
 
 | 时段 | 何时 | 价格 |
 | --- | --- | --- |
-| 峰时 | 周一至周五 `09:00–12:00`、`14:00–18:00` | 全价 |
-| 谷时 | 其余所有时间，以及周六、周日全天 | 默认 50%（`valleyFactor`） |
+| 峰时 | 周一至周五 `09:00–12:00`、`14:00–18:00`（不含法定节假日） | 全价 |
+| 谷时 | 其余所有时间，以及周六、周日和法定节假日全天 | 默认 50%（`valleyFactor`） |
+
+内置价格表，**元 / 百万 Token**（峰时 / 谷时）：
+
+| 模型 | 输入（缓存命中） | 输入（缓存未命中） | 输出 |
+| --- | --- | --- | --- |
+| `deepseek-flash`（含 `deepseek-v4-flash*`） | `0.04` / `0.02` | `2` / `1` | `8` / `4` |
+| `deepseek-v4-pro` | `0.30` / `0.15` | `9` / `4.5` | `27` / `13.5` |
 
 每一步按它自己的时间戳判定时段，计价方式为：
 
 ```text
-cost = input × price.input
-     + cacheRead × price.cacheRead
-     + cacheWrite × price.cacheWrite
-     + output × price.output
+cost = 未命中输入 × price.input
+     + 缓存命中 × price.cacheRead
+     + 缓存写入 × price.cacheWrite
+     + 输出 × price.output
      （谷时再 × valleyFactor，默认 0.5）
 ```
 
-价格单位是「人民币 / 100 万 Token」。内置一张覆盖 DeepSeek 模型系列的价格表——`deepseek-v4-pro`、`deepseek-reasoner`、`deepseek-chat`、`deepseek-flash`，外加一个 `default` 兜底——**每个模型的价格都可以通过插件 config 覆盖**（`prices`，见下文）；如果你的套餐、合同价或币种不同，应当覆盖它。谷时按峰时价格的 50% 计费，除非把 `valleyFactor` 改成别的系数。
+两个最容易算错、这张表已经按官方口径处理的点：
 
-> **这些金额是估算值。** 它们由本地记录的 Token 数和当时生效的价格表算出。价格调整、未被记录的缓存写入、服务端取整，或者一次请求跨过计价边界，都可能让估算与你实际被扣的金额有出入。以 DeepSeek 官方账单为准。
+- **缓存命中很便宜，但它占了绝大多数 Token。** `deepseek-flash` 峰时命中价是 ¥0.04/M，未命中是 ¥2/M——把命中价当成未命中价来算，账单会被放大将近一个数量级。
+- **DeepSeek 不单独收缓存写入费**，未命中价已经包含写入成本，所以内置表里 `cacheWrite` 为 `0`。
+
+法定节假日插件无法自己推断：把日期写进 `offPeakDates`（见[配置](#配置)）即可按谷时计价；不写的话，工作日的节假日会按普通工作日处理。
+
+**每个模型的价格都可以通过插件 config 覆盖**（`prices`）；其他厂商的模型（比如 MiMo）在配置之前会落到 `deepseek-flash` 这一档。
+
+> **这些金额是估算值。** 它们由本地记录的 Token 数和当时生效的价格表算出。价格调整、法定节假日、服务端取整，或者一次请求跨过计价边界，都可能让估算与你实际被扣的金额有出入。以 DeepSeek 官方账单为准。
+
+> **历史会自动重新计价。** 每条落盘记录都带着计价时的价格表版本；插件升级换了价格表后，下次启动会用记录里的 Token 数重算全部历史并写回一次。Token 数本身永远不会被改写。
 
 ---
 
@@ -228,6 +244,7 @@ cost = input × price.input
 | `debug` | boolean | `false` | 输出详细的 Host 侧日志（回填进度、计价判定、余额请求失败原因）。平时保持关闭，排查问题时再打开。 |
 | `historyLimit` | number | `40000` | 存储的步骤记录软上限（最小 `1000`）。超出后裁掉最旧的记录。 |
 | `peakDays` | number 数组 | `[1, 2, 3, 4, 5]` | 可能处于峰时的星期，用 `Date#getUTCDay` 编号（`0` = 周日 … `6` = 周六）。默认周末全天谷时。 |
+| `offPeakDates` | string 数组 | `[]` | 全天按谷时计价的日期（北京时间 `YYYY-MM-DD`），用于法定节假日，例如 `['2026-10-01', '2026-10-02']`。 |
 | `valleyFactor` | number | `0.5` | 谷时相对峰时价格的折扣系数，取值被夹在 `0`–`1`。 |
 
 `config` 是整体替换、不做深合并：只覆盖一个键时，其余你关心的键要么一并写出，要么就采用默认值。改完文件后重启 DSH（或禁用/启用一次插件）让配置生效。

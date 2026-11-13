@@ -5,6 +5,38 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-11-13
+
+### Fixed
+
+- **Cost estimates were roughly 7× too high for `deepseek-flash`.** The built-in price table
+  used ¥0.5/M for cache-hit input, but the official DeepSeek price is ¥0.04/M at peak
+  (¥0.02 off-peak) — and cache hits are ~99 % of the token count, so the error dominated
+  every number. The table now matches the official
+  [pricing page](https://api-docs.deepseek.com/quick_start/pricing):
+  `deepseek-flash` hit `0.04`/`0.02`, miss `2`/`1`, output `8`/`4`;
+  `deepseek-v4-pro` hit `0.30`/`0.15`, miss `9`/`4.5`, output `27`/`13.5`
+  (CNY per 1M tokens, peak/off-peak).
+- **Cache writes are no longer priced separately** — DeepSeek bills them inside the cache-miss
+  input price, so `cacheWrite` is `0` in the built-in table.
+- Peak/valley classification now supports excluding Chinese public holidays through the new
+  `offPeakDates` config key (the official schedule excludes them).
+
+### Added
+
+- **Automatic re-pricing of history.** Every stored step now records the price-table version
+  (`pv`) it was priced with. When an upgrade changes the table, the store recalculates the
+  existing records from their stored token counts on the next start and rewrites the file once;
+  token counts are never modified. `GET /usage-dashboard/api/health` reports the active
+  price-table version.
+- New pricing tests: the official `deepseek-flash` rates, the zero cache-write price, and
+  `offPeakDates` handling. Store test covers the re-pricing rewrite.
+
+### Changed
+
+- README (EN/ZH) documents the official CNY price table, the cache-hit/cache-write pitfalls,
+  the holiday limitation and the automatic re-pricing behaviour.
+
 ## [0.1.2] - 2026-11-13
 
 ### Added
@@ -82,3 +114,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.1.0]: https://github.com/zixiaog/dsh-usage-analytics/releases/tag/v0.1.0
 [0.1.1]: https://github.com/zixiaog/dsh-usage-analytics/releases/tag/v0.1.1
 [0.1.2]: https://github.com/zixiaog/dsh-usage-analytics/releases/tag/v0.1.2
+[0.2.0]: https://github.com/zixiaog/dsh-usage-analytics/releases/tag/v0.2.0

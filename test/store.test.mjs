@@ -73,6 +73,25 @@ test('store：损坏的 JSONL 行被跳过而不是让整个文件失败', async
   assert.ok(store.errors.length === 0 || store.errors.every((entry) => typeof entry === 'string'))
 })
 
+test('store：价格表版本变化时重算历史成本并写回文件', async () => {
+  const dir = await makeDir('store-reprice')
+  const stale = { ...sample(1), cost: 999, pv: 'old-version' }
+  await fs.writeFile(path.join(dir, 'usage-analytics.jsonl'), `${JSON.stringify(stale)}\n`)
+  const store = createStore({ dir })
+  await store.load({
+    reprice: (record) => (record.pv === 'v2' ? null : { cost: 0.5, pk: 0, pv: 'v2' }),
+  })
+  assert.equal(store.records[0].cost, 0.5)
+  assert.equal(store.records[0].pv, 'v2')
+  const raw = await fs.readFile(path.join(dir, 'usage-analytics.jsonl'), 'utf8')
+  assert.match(raw, /"pv":"v2"/)
+  assert.doesNotMatch(raw, /999/)
+
+  const reloaded = createStore({ dir })
+  await reloaded.load({ reprice: (record) => (record.pv === 'v2' ? null : { cost: 0, pk: 0, pv: 'v2' }) })
+  assert.equal(reloaded.records[0].cost, 0.5, '已重算的记录不会再被改写')
+})
+
 test.after(async () => {
   await fs.rm(tmpRoot, { recursive: true, force: true })
 })

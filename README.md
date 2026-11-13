@@ -173,26 +173,42 @@ Because of the cap, `All` reaches back as far as the stored records go — usual
 
 ### How the bill is estimated
 
-DeepSeek prices tokens differently in **peak** and **valley** hours. This plugin follows the Beijing-time (UTC+8) schedule:
+Prices come from the official [DeepSeek pricing page](https://api-docs.deepseek.com/quick_start/pricing). Peak/valley is the Beijing-time (UTC+8) schedule:
 
 | Period | When | Price |
 | --- | --- | --- |
-| Peak | Monday–Friday, `09:00–12:00` and `14:00–18:00` | full price |
-| Valley | every other time, plus all day Saturday and Sunday | 50% by default (`valleyFactor`) |
+| Peak | Monday–Friday, `09:00–12:00` and `14:00–18:00` (excluding Chinese public holidays) | full price |
+| Valley | every other time, plus all day Saturday, Sunday and public holidays | 50% (`valleyFactor`) |
+
+Built-in table, **CNY per 1M tokens** (peak / off-peak):
+
+| Model | Input (cache hit) | Input (cache miss) | Output |
+| --- | --- | --- | --- |
+| `deepseek-flash` (incl. `deepseek-v4-flash*`) | `0.04` / `0.02` | `2` / `1` | `8` / `4` |
+| `deepseek-v4-pro` | `0.30` / `0.15` | `9` / `4.5` | `27` / `13.5` |
 
 Every step is classified by its own timestamp and priced as:
 
 ```text
-cost = input × price.input
+cost = missInput × price.input
      + cacheRead × price.cacheRead
      + cacheWrite × price.cacheWrite
      + output × price.output
      (then × valleyFactor during valley hours — 0.5 by default)
 ```
 
-Prices are CNY per 1 million tokens. A built-in table covers the DeepSeek model families — `deepseek-v4-pro`, `deepseek-reasoner`, `deepseek-chat`, `deepseek-flash` and a `default` fallback — and **you can override any model through the plugin config** (`prices`, see below), which is the right thing to do if your plan, contract or currency differs. Valley steps are billed at 50% of the peak price unless `valleyFactor` says otherwise.
+Two details that are easy to get wrong, and that this table follows:
 
-> **These amounts are estimates.** They are computed locally from the token counts DSH records and the price table in effect at the time. Price changes, unrecorded cache writes, provider-side rounding or a long-running request that crosses a price boundary can all make the estimate differ from what you are actually charged. The official DeepSeek bill is always the source of truth.
+- **Cache hits are the cheap part, and they dominate the token count.** `deepseek-flash` cache-hit input is ¥0.04/M (peak) versus ¥2/M for a miss — a price table that treats the hit price like a miss price overstates the bill by roughly an order of magnitude.
+- **DeepSeek does not bill cache writes separately**; the miss price already covers them, so `cacheWrite` is `0` in the built-in table.
+
+Public holidays are the one thing a plugin cannot infer: pass the dates in `offPeakDates` (see [Configuration](#configuration)) to have them billed at the off-peak rate. Without that list, a weekday holiday is treated as an ordinary weekday.
+
+**You can override any model through the plugin config** (`prices`) — required for models from other providers (e.g. MiMo), which fall back to the `deepseek-flash` row until configured.
+
+> **These amounts are estimates.** They are computed locally from the token counts DSH records and the price table in effect at the time. Price changes, public holidays, provider-side rounding or a long-running request that crosses a price boundary can all make the estimate differ from what you are actually charged. The official DeepSeek bill is always the source of truth.
+
+> **History is re-priced automatically.** Every stored step carries the price-table version it was priced with; when a plugin upgrade changes the table, existing records are recalculated from their stored token counts on the next start and written back once. Token counts are never rewritten.
 
 ---
 
@@ -228,6 +244,7 @@ The prices above are the built-in defaults for `deepseek-chat`, shown as an illu
 | `debug` | boolean | `false` | Writes verbose host-side logging (backfill progress, pricing decisions, balance failures). Leave it off unless you are diagnosing something. |
 | `historyLimit` | number | `40000` | Soft cap on stored step records (minimum `1000`). Past the cap, the oldest records are trimmed. |
 | `peakDays` | number array | `[1, 2, 3, 4, 5]` | Weekdays that can be peak, using `Date#getUTCDay` numbering (`0` = Sunday … `6` = Saturday). With the default, weekends are valley all day. |
+| `offPeakDates` | string array | `[]` | Beijing-time dates (`YYYY-MM-DD`) billed at the off-peak rate all day, e.g. Chinese public holidays: `['2026-10-01', '2026-10-02']`. |
 | `valleyFactor` | number | `0.5` | Multiplier applied to the price in valley hours, clamped to `0`–`1`. |
 
 A `config` block is replaced as a whole, not merged: if you override one key, restate the others you care about or leave them at their defaults. After editing the file, restart DSH (or disable/enable the plugin) for the change to take effect.
