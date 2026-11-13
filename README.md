@@ -2,7 +2,9 @@
 
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![npm](https://img.shields.io/npm/v/dsh-usage-analytics.svg)](https://www.npmjs.com/package/dsh-usage-analytics)
-[![DSH](https://img.shields.io/badge/DSH-0.2.x-4d6bfe)](https://github.com/deepseek-ai)
+[![DSH](https://img.shields.io/badge/DSH-0.2.x%20%C2%B7%20latest-4d6bfe)](#compatibility--maintenance)
+[![maintained](https://img.shields.io/badge/maintained-yes-3ddc97)](#compatibility--maintenance)
+[![updates](https://img.shields.io/badge/updates-continuous-3ddc97)](#compatibility--maintenance)
 [![platform](https://img.shields.io/badge/platform-DSH%20Web%20UI-lightgrey)](#requirements)
 [![check](https://github.com/zixiaog/dsh-usage-analytics/actions/workflows/check.yml/badge.svg)](https://github.com/zixiaog/dsh-usage-analytics/actions/workflows/check.yml)
 
@@ -11,6 +13,8 @@ A DeepSeek Harness (DSH) plugin that puts a **peak/off-peak billing dock** under
 The dock tells you, at a glance, what the current conversation has cost, what this turn is costing, and how far away the next price window is. The dashboard answers the bigger question — "where did this week's money go?" — with cost trends, token structure, model mix, a peak/valley split, and turn-by-turn records across all sessions, not just the one that is open.
 
 > Built for DSH `0.2.x` with the Web UI. No build step and no runtime dependencies: the host half is plain Node ESM, the client half is a single dynamic module served by DSH.
+
+> **Supports the latest DSH · continuously updated.** Verified against the current `latest` (**DSH `0.2.2-rc.1`**) and the `next` line (`0.2.2-rc.2`). This plugin is actively maintained: when a DSH release changes a service, event, slot or storage contract it relies on, a matching plugin release follows — see [Compatibility & maintenance](#compatibility--maintenance) and [CHANGELOG.md](CHANGELOG.md).
 
 中文文档：[README.zh-CN.md](README.zh-CN.md)
 
@@ -38,6 +42,20 @@ The dock tells you, at a glance, what the current conversation has cost, what th
 | Filters, six stat cards, trend, token mix, model distribution, peak/valley split | One compact row under the composer: period, countdown, session and turn cost, balance | Click a day for 24-hour peak/valley bars |
 
 More screenshots: [`docs/screenshots/`](docs/screenshots) — this-session scope, cross-session history, token structure and install.
+
+---
+
+## Compatibility & maintenance
+
+| | |
+| --- | --- |
+| **DSH support** | `0.2.x` — verified against `0.2.2-rc.1` (current `latest`) and `0.2.2-rc.2` (current `next`) |
+| **Update policy** | **Continuous — the plugin tracks DSH, not the other way round.** Every upstream release that changes a contract it uses gets a matching plugin release |
+| **Contracts relied on** | `sessionPersistence` (session logs), the `session/event` firehose, `webServer` routes, `deepseekAccount.getBalance`, the slot API (`conversation.composer.dock`, `shell.overlay`) and DSH theme tokens |
+| **How drift is caught** | The unit suite covers pricing, folding, storage, backfill and the HTTP API; CI runs it on Node 20. A breaking upstream change shows up as a failed check or a slot error before it reaches a release |
+| **When it breaks anyway** | Open an issue with your DSH version and the console error; a patch release follows. Version history is in [CHANGELOG.md](CHANGELOG.md) |
+
+Supported **DSH versions are raised, never lowered**: a release notes the exact DSH version it was verified against, so you always know what "latest" means for a given plugin version.
 
 ---
 

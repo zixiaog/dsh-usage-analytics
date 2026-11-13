@@ -2,7 +2,9 @@
 
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![npm](https://img.shields.io/npm/v/dsh-usage-analytics.svg)](https://www.npmjs.com/package/dsh-usage-analytics)
-[![DSH](https://img.shields.io/badge/DSH-0.2.x-4d6bfe)](https://github.com/deepseek-ai)
+[![DSH](https://img.shields.io/badge/DSH-0.2.x%20%C2%B7%20latest-4d6bfe)](#兼容性与维护)
+[![maintained](https://img.shields.io/badge/maintained-yes-3ddc97)](#兼容性与维护)
+[![updates](https://img.shields.io/badge/updates-continuous-3ddc97)](#兼容性与维护)
 [![platform](https://img.shields.io/badge/platform-DSH%20Web%20UI-lightgrey)](#环境要求)
 [![check](https://github.com/zixiaog/dsh-usage-analytics/actions/workflows/check.yml/badge.svg)](https://github.com/zixiaog/dsh-usage-analytics/actions/workflows/check.yml)
 
@@ -11,6 +13,8 @@ DeepSeek Harness（DSH）用量插件：在输入框下方挂一条**峰谷分�
 坞告诉你这个会话已经花了多少、这一轮正在花多少、距离下一个计价时段还有多久；面板则回答更大的问题——“这周的钱花哪儿了”：成本趋势、Token 结构、模型分布、峰谷对比，以及跨会话、可逐轮逐步骤展开的最近记录。
 
 > 面向 DSH `0.2.x` 的 Web UI。无构建步骤、无运行时依赖：Host 半侧是普通 Node ESM，Client 半侧是 DSH 直接下发的单个动态模块。
+
+> **支持最新版 DSH · 持续更新 · 不断更。** 已对当前 `latest`（**DSH `0.2.2-rc.1`**）与 `next` 线（`0.2.2-rc.2`）验证。插件跟着 DSH 走：只要上游改动影响到本插件使用的服务、事件、slot 或存储契约，就会跟进发布对应版本——见 [兼容性与维护](#兼容性与维护) 与 [CHANGELOG.md](CHANGELOG.md)。
 
 English: [README.md](README.md)
 
@@ -38,6 +42,20 @@ English: [README.md](README.md)
 | 筛选、六张统计卡、成本趋势、Token 结构、模型分布与峰谷对比 | 输入框下方的一行：时段、倒计时、本会话/本轮成本、余额 | 点某一天查看 24 小时峰谷柱状图 |
 
 更多截图见 [`docs/screenshots/`](docs/screenshots)：本会话视图、跨会话历史、Token 结构、安装说明。
+
+---
+
+## 兼容性与维护
+
+| | |
+| --- | --- |
+| **DSH 支持范围** | `0.2.x` — 已验证 `0.2.2-rc.1`（当前 `latest`）与 `0.2.2-rc.2`（当前 `next`） |
+| **更新策略** | **持续更新、不断更：插件跟 DSH 走，而不是反过来。** 上游一旦改动本插件依赖的契约，就发布对应版本 |
+| **依赖的上游契约** | `sessionPersistence`（会话日志）、`session/event` 事件流、`webServer` 路由、`deepseekAccount.getBalance`、slot API（`conversation.composer.dock`、`shell.overlay`）与 DSH 主题 token |
+| **如何发现不兼容** | 单测覆盖计价、事件折叠、存储、回填与 HTTP API，CI 在 Node 20 上运行；上游破坏性改动会先在检查或 slot 报错中暴露，不会带病发版 |
+| **万一真的坏了** | 开 issue 附上 DSH 版本与控制台报错，会尽快出补丁版；版本历史见 [CHANGELOG.md](CHANGELOG.md) |
+
+支持范围**只升不降**：每个版本都会写明验证时的 DSH 版本，你能清楚知道「最新版」对某个插件版本意味着什么。
 
 ---
 

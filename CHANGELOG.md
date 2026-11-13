@@ -1,9 +1,29 @@
-﻿# Changelog
+# Changelog
 
 All notable changes to this project are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.1.1] - 2026-11-13
+
+### Added
+
+- **"Supports the latest DSH · continuously updated"** statement on the README front
+  page, plus `maintained` / `updates: continuous` badges.
+- **Compatibility & maintenance** section: names the exact verified DSH versions
+  (`0.2.2-rc.1` on `latest`, `0.2.2-rc.2` on `next`), lists every upstream contract the
+  plugin depends on (session persistence, the `session/event` firehose, `webServer`
+  routes, `deepseekAccount`, the two slot keys, theme tokens), and states the update
+  policy: upstream changes ship a matching plugin release, and the verified DSH version
+  is raised, never lowered.
+- **README preview section and `docs/screenshots/`**: cover, dashboard, dock,
+  date drill-down, this-session scope and cross-session history, captured from a real DSH
+  Web instance with the plugin installed (balance masked in the dock shots).
+
+### Changed
+
+- Promo cover image now carries the maintenance promise as well.
 
 ## [0.1.0] - 2026-11-12
 
@@ -50,3 +70,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   composer or the dashboard.
 
 [0.1.0]: https://github.com/zixiaog/dsh-usage-analytics/releases/tag/v0.1.0
+[0.1.1]: https://github.com/zixiaog/dsh-usage-analytics/releases/tag/v0.1.1
