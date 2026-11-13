@@ -41,6 +41,8 @@
     "lib/*.js",
     "locale/*.json",
     "icon.svg",
+    "screenshots.json",
+    "docs/screenshots/*.jpg",
     "README.md",
     "README.zh-CN.md",
     "CHANGELOG.md",
@@ -58,6 +60,10 @@
     "registry": "https://registry.npmjs.org/"
   },
   "dsh": {
+    "catalog": {
+      "category": "usage",
+      "summary": "Token, cost and peak/off-peak analytics for DSH: a billing dock under the composer plus a cross-session dashboard with durable history and live balance."
+    },
     "bundle": {
       "patch": "./cordis.patch.yml"
     },
