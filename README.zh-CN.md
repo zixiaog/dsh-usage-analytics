@@ -1,4 +1,4 @@
-﻿# dsh-usage-analytics
+# dsh-usage-analytics
 
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![npm](https://img.shields.io/npm/v/dsh-usage-analytics.svg)](https://www.npmjs.com/package/dsh-usage-analytics)
@@ -25,6 +25,19 @@ English: [README.md](README.md)
 - **按日期下钻**——点击趋势图上的某一天，所有内容收窄到这一天；用 `‹` / `›` 前后翻日期；一键回到当前范围。
 - **最近记录**——最近若干轮按轮次分组，可展开到单个步骤，显示每一步的输入 / 缓存命中 / 输出 / 成本。
 - **账户余额**——读取你已登录的 DeepSeek 平台账号；拿不到时坞和面板显示 `—`，不弹错误。
+
+---
+
+## 预览
+
+![dsh-usage-analytics 封面](docs/screenshots/cover.jpg)
+
+| 完整仪表盘 | 输入框计费坞 | 按日期下钻 |
+| --- | --- | --- |
+| ![仪表盘](docs/screenshots/dashboard.jpg) | ![用量坞](docs/screenshots/dock.jpg) | ![按日期下钻](docs/screenshots/drilldown.jpg) |
+| 筛选、六张统计卡、成本趋势、Token 结构、模型分布与峰谷对比 | 输入框下方的一行：时段、倒计时、本会话/本轮成本、余额 | 点某一天查看 24 小时峰谷柱状图 |
+
+更多截图见 [`docs/screenshots/`](docs/screenshots)：本会话视图、跨会话历史、Token 结构、安装说明。
 
 ---
 

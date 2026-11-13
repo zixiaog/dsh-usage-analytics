@@ -1,4 +1,4 @@
-# dsh-usage-analytics · Design notes
+﻿# dsh-usage-analytics · Design notes
 
 > Peak/off-peak billing dock and usage dashboard for DeepSeek Harness.
 > Version 0.1.0 · targets DSH `0.2.x` with the Web UI (web profile).
@@ -436,4 +436,5 @@ dsh-usage-analytics/
   scripts/test.mjs      test entry (imports the suites in one process)
   scripts/check.mjs     static checks
   docs/DESIGN.md        this document
+  docs/screenshots/     promo images used by the README
 ```

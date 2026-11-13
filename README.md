@@ -1,4 +1,4 @@
-﻿# dsh-usage-analytics
+# dsh-usage-analytics
 
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![npm](https://img.shields.io/npm/v/dsh-usage-analytics.svg)](https://www.npmjs.com/package/dsh-usage-analytics)
@@ -25,6 +25,19 @@ The dock tells you, at a glance, what the current conversation has cost, what th
 - **Date drill-down** — click a day in the trend chart to narrow everything to that day, step through neighbouring dates with `‹` / `›`, and jump back to the current range with one click.
 - **Recent records** — the latest turns grouped by turn, collapsible down to individual steps with input / cache-read / output / cost for each step.
 - **Account balance** — read from the DeepSeek platform account you are signed in with; when that is unavailable the dock and dashboard show `—` instead of an error.
+
+---
+
+## Preview
+
+![dsh-usage-analytics cover](docs/screenshots/cover.jpg)
+
+| The dashboard | The dock | A single day |
+| --- | --- | --- |
+| ![Dashboard](docs/screenshots/dashboard.jpg) | ![Dock](docs/screenshots/dock.jpg) | ![Drill-down](docs/screenshots/drilldown.jpg) |
+| Filters, six stat cards, trend, token mix, model distribution, peak/valley split | One compact row under the composer: period, countdown, session and turn cost, balance | Click a day for 24-hour peak/valley bars |
+
+More screenshots: [`docs/screenshots/`](docs/screenshots) — this-session scope, cross-session history, token structure and install.
 
 ---
 
