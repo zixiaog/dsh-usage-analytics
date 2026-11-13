@@ -145,6 +145,26 @@ test('aggregate：最近记录按 (会话,轮次) 分组并保留步骤', () => 
   assert.equal(result.recent.length, 3)
 })
 
+test('aggregate：按次工具费计入成本，但不计入步数 / Token / 模型分布', () => {
+  const now = at(2026, 11, 12, 20, 0)
+  const records = [
+    record({ t: at(2026, 11, 12, 10, 0), seq: 1, cost: 1, i: 1000, cr: 9000 }),
+    { sid: 's1', seq: 2, t: at(2026, 11, 12, 10, 5), kind: 'fee', f: 'search', n: 3, cost: 0.015, pk: 0 },
+    { sid: 's1', seq: 3, t: at(2026, 11, 12, 10, 6), kind: 'fee', f: 'fetch', n: 2, cost: 0.01, pk: 0 },
+  ]
+  const result = aggregate({ records, sessionMeta: meta, pricing, filters: { range: 'today' }, now })
+  assert.ok(Math.abs(result.overview.cost - 1.025) < 1e-9, '总成本含工具费')
+  assert.ok(Math.abs(result.overview.modelCost - 1) < 1e-9)
+  assert.ok(Math.abs(result.overview.feeCost - 0.025) < 1e-9)
+  assert.equal(result.overview.searchRequests, 3)
+  assert.equal(result.overview.fetchRequests, 2)
+  assert.equal(result.overview.steps, 1, '费用不计步数')
+  assert.equal(result.overview.tokens, 10100, '费用不计 Token（1000 未命中 + 9000 命中 + 100 输出）')
+  assert.equal(result.models.length, 1, '费用不进模型分布')
+  assert.equal(result.days[0].feeCost > 0, true)
+  assert.equal(result.groups[0].steps.length, 1, '最近记录不含费用')
+})
+
 test('liveSummary：会话累计与最新一轮', () => {
   const now = at(2026, 11, 12, 12, 0)
   const records = [

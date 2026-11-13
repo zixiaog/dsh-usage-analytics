@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { recordFromEvent, foldSessionEvents, recordKey } from '../lib/scan.js'
+import { recordFromEvent, foldSessionEvents, recordKey, feeRecordFromEvent, recordsFromEvent } from '../lib/scan.js'
 import { createPricing, BEIJING_OFFSET_MS } from '../lib/pricing.js'
 
 const pricing = createPricing()
@@ -63,6 +63,57 @@ test('foldSessionEvents：增量折叠只返回水位之后的事件', () => {
   const tail = foldSessionEvents('s', events, pricing, 1)
   assert.deepEqual(tail.records.map((record) => record.seq), [2, 3])
   assert.equal(tail.lastSeq, 3)
+})
+
+test('feeRecordFromEvent：web_search 按 queries 条数、web_fetch 按 URL 条数计费', () => {
+  const search = {
+    type: 'tool/call',
+    seq: 7,
+    time: Date.UTC(2026, 10, 13, 2, 0),
+    data: { name: 'web_search', arguments: JSON.stringify({ queries: ['a', 'b', 'c'] }) },
+  }
+  const fee = feeRecordFromEvent('s', search, pricing)
+  assert.equal(fee.kind, 'fee')
+  assert.equal(fee.f, 'search')
+  assert.equal(fee.n, 3)
+  assert.ok(Math.abs(fee.cost - 0.015) < 1e-9, '3 次搜索 × ¥0.005')
+
+  const fetchCall = {
+    type: 'tool/call',
+    seq: 8,
+    time: Date.UTC(2026, 10, 13, 2, 1),
+    data: { name: 'web_fetch', arguments: JSON.stringify({ urls: ['https://a', 'https://b'] }) },
+  }
+  const fetchFee = feeRecordFromEvent('s', fetchCall, pricing)
+  assert.equal(fetchFee.f, 'fetch')
+  assert.equal(fetchFee.n, 2)
+  assert.ok(Math.abs(fetchFee.cost - 0.01) < 1e-9)
+
+  assert.equal(feeRecordFromEvent('s', { type: 'tool/call', seq: 9, data: { name: 'read', arguments: '{}' } }, pricing), null)
+})
+
+test('recordsFromEvent：一条事件只会产出一条记录', () => {
+  const message = assistantMessage({
+    usage: { inputTokens: 10, outputTokens: 1, cacheReadTokens: 0, cacheWriteTokens: 0 },
+  })
+  assert.equal(recordsFromEvent('s', message, pricing).length, 1)
+  const tool = { type: 'tool/call', seq: 3, time: Date.now(), data: { name: 'web_search', arguments: '{"queries":["x"]}' } }
+  assert.equal(recordsFromEvent('s', tool, pricing).length, 1)
+  assert.equal(recordsFromEvent('s', { type: 'step/end', seq: 4, data: {} }, pricing).length, 0)
+})
+
+test('foldSessionEvents 同时折出用量记录与按次费用记录', () => {
+  const events = [
+    assistantMessage({
+      seq: 1,
+      time: Date.UTC(2026, 10, 12, 2, 0),
+      usage: { inputTokens: 100, outputTokens: 10, cacheReadTokens: 0, cacheWriteTokens: 0 },
+    }),
+    { type: 'tool/call', seq: 2, time: Date.UTC(2026, 10, 12, 2, 1), data: { name: 'web_fetch', arguments: '{"url":"https://x"}' } },
+  ]
+  const { records } = foldSessionEvents('s', events, pricing)
+  assert.equal(records.length, 2)
+  assert.equal(records.filter((record) => record.kind === 'fee').length, 1)
 })
 
 test('峰谷标记随事件时间变化', () => {

@@ -14,7 +14,7 @@ import { createHandler } from './lib/api.js'
 import { createPricing } from './lib/pricing.js'
 import { createStore } from './lib/store.js'
 import { createSync } from './lib/sync.js'
-import { recordFromEvent } from './lib/scan.js'
+import { recordsFromEvent } from './lib/scan.js'
 import { resolveStorageDir, sessionLabel } from './lib/util.js'
 
 export const name = 'dsh-usage-analytics'
@@ -88,13 +88,15 @@ export function apply(ctx, config = {}) {
       () =>
         ctx.on('session/event', (session, event) => {
           try {
-            if (!event || event.type !== 'assistant/message') return
-            if (!event.data?.usage) return
+            if (!event) return
+            // 用量：assistant/message；按次计费：web_search / web_fetch 的 tool/call
+            if (event.type !== 'assistant/message' && event.type !== 'tool/call') return
             const sid = String(session?.id ?? session?.header?.id ?? '')
             if (!sid) return
-            const record = recordFromEvent(sid, event, pricing)
-            if (!record) return
-            store.append([record])
+            const records = recordsFromEvent(sid, event, pricing)
+            if (records.length === 0) return
+            store.append(records)
+            const record = records[records.length - 1]
             // 注意：这里不推进回填水位 seq——水位只由回填推进，避免实时事件把
             // 「插件启动前就提交、但还没回填的事件」永久跳过。
             const meta = store.sessionMeta(sid)
@@ -131,11 +133,12 @@ export function apply(ctx, config = {}) {
     }, 'usage-analytics: warm-up')
 
     ctx.effect(() => {
+      // 60 秒一次增量回填，让面板里的 Token / 成本尽快追上平台（平台本身有 ~5 分钟延迟）。
       const timer = setInterval(() => {
         void ready
-          .then(() => sync.ensure({ maxMs: 8000, minIntervalMs: 240000 }))
+          .then(() => sync.ensure({ maxMs: 8000, minIntervalMs: 45000 }))
           .catch(() => {})
-      }, 300000)
+      }, 60000)
       if (typeof timer.unref === 'function') timer.unref()
       return () => clearInterval(timer)
     }, 'usage-analytics: periodic sync')

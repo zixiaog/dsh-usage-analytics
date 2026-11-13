@@ -5,6 +5,26 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-11-13
+
+### Added
+
+- **Search / fetch tool fees are now counted.** DeepSeek bills Search and Fetch per successful
+  request (¥5 per 1,000 = ¥0.005 each) outside the token prices. The plugin reads `web_search`
+  (query units) and `web_fetch` (URL units) tool calls from the session log and adds a separate
+  **tool fees** line on the peak/valley card, so the total now tracks the platform bill on days
+  with web tools. Fees never enter token counts, step counts, the model distribution or the
+  recent-records list. Unit prices are configurable through `searchPerRequest` (`0.005`) and
+  `fetchPerRequest` (`0.005`), and the model filter excludes fee records because they belong to
+  no model.
+- Faster catch-up: the periodic incremental backfill now runs every 60 s (was 5 min), so the
+  dashboard follows the platform with less lag.
+
+### Fixed
+
+- Aggregate total (`overview.cost`) now equals model cost + tool fees; `overview.modelCost`
+  carries the token-only subtotal used by the average-cost-per-step figure.
+
 ## [0.2.0] - 2026-11-13
 
 ### Fixed
@@ -115,3 +135,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.1.1]: https://github.com/zixiaog/dsh-usage-analytics/releases/tag/v0.1.1
 [0.1.2]: https://github.com/zixiaog/dsh-usage-analytics/releases/tag/v0.1.2
 [0.2.0]: https://github.com/zixiaog/dsh-usage-analytics/releases/tag/v0.2.0
+[0.2.1]: https://github.com/zixiaog/dsh-usage-analytics/releases/tag/v0.2.1

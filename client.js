@@ -94,6 +94,8 @@ window.__ModuleLoader__.load({
       'mix.input': '输入-未命中', 'mix.cacheRead': '输入-命中', 'mix.cacheWrite': '缓存写入', 'mix.output': '输出',
       'pv.peak': '波峰', 'pv.valley': '波谷', 'pv.summary': '{cost} · {steps} 步',
       'pv.saved': '谷时节省 {cost} ≈ {percent}',
+      'pv.fees': '工具费 {cost}（搜索 {search} 次 · 抓取 {fetch} 次）',
+      'pv.fees.hint': '搜索 / 抓取按次计费（¥5 / 1000 次），不分峰谷；来自会话里的 web_search / web_fetch 调用',
       'recent.title': '最近记录', 'recent.meta': '{turns} 轮 · {steps} 步',
       'recent.expand': '展开全部', 'recent.collapse': '收起',
       'recent.turn': '第{turn}轮', 'recent.step': '第{turn}轮 第{step}步', 'recent.more': '还有 {n} 步…',
@@ -130,6 +132,8 @@ window.__ModuleLoader__.load({
       'mix.input': 'Input (uncached)', 'mix.cacheRead': 'Input (cached)', 'mix.cacheWrite': 'Cache write', 'mix.output': 'Output',
       'pv.peak': 'Peak', 'pv.valley': 'Off-peak', 'pv.summary': '{cost} · {steps} steps',
       'pv.saved': 'Off-peak saved {cost} ≈ {percent}',
+      'pv.fees': 'Tool fees {cost} ({search} searches · {fetch} fetches)',
+      'pv.fees.hint': 'Search / fetch are billed per request (¥5 per 1,000), no peak/off-peak split; counted from web_search / web_fetch tool calls',
       'recent.title': 'Recent', 'recent.meta': '{turns} turns · {steps} steps',
       'recent.expand': 'Expand all', 'recent.collapse': 'Collapse',
       'recent.turn': 'Turn {turn}', 'recent.step': 'Turn {turn} step {step}', 'recent.more': '{n} more steps…',
@@ -378,6 +382,7 @@ window.__ModuleLoader__.load({
 .ua-pv-track span{display:block;height:100%;border-radius:999px;transition:width .35s ease}
 .ua-pv-num{color:${T.text2};font-variant-numeric:tabular-nums;flex:none;font-size:11px;margin-left:auto}
 .ua-saved{margin-top:12px;border-radius:9px;padding:7px 10px;font-size:11.5px;color:${T.success};background:${T.successSoft};border:1px solid ${T.successLine};display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums}
+.ua-fee{margin-top:6px;border-radius:9px;padding:6px 10px;font-size:11px;color:${T.text2};background:${T.layer2};border:1px solid ${T.border};display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums}
 .ua-recent-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
 .ua-recent-list{max-height:180px;overflow-y:auto;overscroll-behavior:contain;border-top:1px solid ${T.border};padding-top:2px;margin:0 -2px}
 .ua-group{display:flex;align-items:center;gap:8px;font-size:11.5px;padding:5px 4px;border-radius:6px;cursor:pointer;color:${T.text};min-width:0}
@@ -703,7 +708,16 @@ window.__ModuleLoader__.load({
           row(t('pv.peak'), T.warn, peak, overview.peakSteps),
           row(t('pv.valley'), T.success, valley, overview.valleySteps)),
         h('div', { className: 'ua-saved' }, icon('check', 12),
-          h('span', null, t('pv.saved', { cost: fmtCost(saved), percent: fmtPercent(savedPercent) }))))
+          h('span', null, t('pv.saved', { cost: fmtCost(saved), percent: fmtPercent(savedPercent) }))),
+        num(overview.feeCost) > 0
+          ? h('div', { className: 'ua-fee', title: t('pv.fees.hint') },
+              icon('check', 12),
+              h('span', null, t('pv.fees', {
+                cost: fmtCostFine(overview.feeCost),
+                search: fmtInt(overview.searchRequests),
+                fetch: fmtInt(overview.fetchRequests),
+              })))
+          : null)
     }
 
     // -------------------------------------------------------------------

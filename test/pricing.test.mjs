@@ -47,8 +47,17 @@ test('官方价格：flash 缓存命中 0.04 元/M、未命中 2 元/M、输出 
   assert.equal(pricing.priceFor('deepseek-flash').cacheWrite, 0)
 })
 
-test('offPeakDates：法定节假日全天按谷时', () => {
-  const pricing = createPricing({ offPeakDates: ['2026-11-12'] })
+test('按次费用：搜索 / 抓取 ¥5 / 1000 次，不分峰谷', () => {
+  const pricing = createPricing()
+  assert.ok(Math.abs(pricing.feeCostOf('search', 7) - 0.035) < 1e-9)
+  assert.ok(Math.abs(pricing.feeCostOf('fetch', 2) - 0.01) < 1e-9)
+  assert.equal(pricing.feeCostOf('search', 0), 0)
+  const custom = createPricing({ searchPerRequest: 0.01, fetchPerRequest: 0 })
+  assert.ok(Math.abs(custom.feeCostOf('search', 3) - 0.03) < 1e-9)
+  assert.equal(custom.feeCostOf('fetch', 3), 0)
+})
+
+test('offPeakDates：法定节假日全天按谷时', () => {  const pricing = createPricing({ offPeakDates: ['2026-11-12'] })
   assert.equal(pricing.isPeak(beijingTime(2026, 11, 12, 10, 0)), false, '节假日工作日峰时窗口内也算谷时')
   assert.equal(pricing.isPeak(beijingTime(2026, 11, 13, 10, 0)), true, '第二天恢复峰时')
 })

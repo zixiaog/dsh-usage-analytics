@@ -1,6 +1,6 @@
 {
   "name": "dsh-usage-analytics",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "DeepSeek Harness usage analytics: a peak/off-peak billing dock under the composer and a full dashboard for cross-session token, cost, model and peak/valley statistics, with durable history and live balance.",
   "type": "module",
   "license": "MIT",

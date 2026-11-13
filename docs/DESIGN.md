@@ -308,6 +308,17 @@ priced with). `store.load({ reprice })` recomputes `cost` / `pk` for records who
 stale and rewrites the JSONL once; token counts are untouched. This is how the 0.2.0 price fix
 corrected every historical record without re-reading session logs.
 
+**Per-request fees (search / fetch).** Search and Fetch are billed per successful request at
+CNY 5 / 1,000 (¥0.005 each), with no peak/valley split. `foldSessionEvents` also turns
+`tool/call` events named `web_search` / `web_fetch` into fee records
+`{ kind: 'fee', f: 'search' | 'fetch', n, cost, pk: 0 }` (query units for search, URL units for
+fetch). Aggregation adds them to `overview.cost`, `overview.feeCost`, the day / hourly / session
+cost, and exposes `searchRequests` / `fetchRequests`; they never enter token counts, step
+counts, the model distribution or the recent-records list. The client shows them as a separate
+"tool fees" line on the peak/valley card. Unit prices are configurable with
+`searchPerRequest` / `fetchPerRequest`, and fee records are ignored by the model filter because
+they do not belong to a model.
+
 > The result is an **estimate**. DSH may not record every cache write, the provider may
 > round differently, public holidays need to be configured, and prices change over time. The
 > plugin never claims to reproduce the official bill.

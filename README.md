@@ -201,6 +201,7 @@ Two details that are easy to get wrong, and that this table follows:
 
 - **Cache hits are the cheap part, and they dominate the token count.** `deepseek-flash` cache-hit input is ¥0.04/M (peak) versus ¥2/M for a miss — a price table that treats the hit price like a miss price overstates the bill by roughly an order of magnitude.
 - **DeepSeek does not bill cache writes separately**; the miss price already covers them, so `cacheWrite` is `0` in the built-in table.
+- **Search and fetch are billed per request**, ¥5 per 1,000 successful requests (¥0.005 each), with no peak/valley split. The plugin counts `web_search` query units and `web_fetch` URLs found in the session log and adds them as a separate **tool fees** line on the peak/valley card; they never enter token counts, step counts or the model distribution. Override the unit price with `searchPerRequest` / `fetchPerRequest` if your contract differs.
 
 Public holidays are the one thing a plugin cannot infer: pass the dates in `offPeakDates` (see [Configuration](#configuration)) to have them billed at the off-peak rate. Without that list, a weekday holiday is treated as an ordinary weekday.
 
@@ -245,6 +246,8 @@ The prices above are the built-in defaults for `deepseek-chat`, shown as an illu
 | `historyLimit` | number | `40000` | Soft cap on stored step records (minimum `1000`). Past the cap, the oldest records are trimmed. |
 | `peakDays` | number array | `[1, 2, 3, 4, 5]` | Weekdays that can be peak, using `Date#getUTCDay` numbering (`0` = Sunday … `6` = Saturday). With the default, weekends are valley all day. |
 | `offPeakDates` | string array | `[]` | Beijing-time dates (`YYYY-MM-DD`) billed at the off-peak rate all day, e.g. Chinese public holidays: `['2026-10-01', '2026-10-02']`. |
+| `searchPerRequest` | number | `0.005` | CNY per search request, counted from `web_search` tool calls (query units). |
+| `fetchPerRequest` | number | `0.005` | CNY per fetch request, counted from `web_fetch` tool calls (URL units). |
 | `valleyFactor` | number | `0.5` | Multiplier applied to the price in valley hours, clamped to `0`–`1`. |
 
 A `config` block is replaced as a whole, not merged: if you override one key, restate the others you care about or leave them at their defaults. After editing the file, restart DSH (or disable/enable the plugin) for the change to take effect.
