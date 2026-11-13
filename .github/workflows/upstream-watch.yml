@@ -1,0 +1,69 @@
+name: upstream-watch
+
+# 持续更新巡检：每周检查 @deepseek-ai/dsh 是否发布了新版本。
+# 发现新版本时自动开一个 issue 记录「需要验证兼容性」，
+# 避免上游改了契约而插件无声无息地过期。
+on:
+  schedule:
+    - cron: '17 3 * * 1' # 每周一 03:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check-dsh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read the DSH version this plugin was verified against
+        id: verified
+        run: |
+          version="$(cat .github/dsh-verified-version)"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "verified against DSH ${version}"
+
+      - name: Ask npm for the current DSH latest
+        id: upstream
+        run: |
+          latest="$(npm view @deepseek-ai/dsh version 2>/dev/null || true)"
+          echo "latest=${latest}" >> "$GITHUB_OUTPUT"
+          echo "npm latest: ${latest}"
+
+      - name: Open a tracking issue when DSH moved on
+        if: steps.upstream.outputs.latest != '' && steps.upstream.outputs.latest != steps.verified.outputs.version
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const verified = '${{ steps.verified.outputs.version }}'
+            const latest = '${{ steps.upstream.outputs.latest }}'
+            const title = `DSH ${latest} released — verify dsh-usage-analytics compatibility`
+            const { data: open } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'upstream',
+              per_page: 100,
+            })
+            if (open.some((issue) => issue.title === title)) {
+              core.info(`issue already open: ${title}`)
+              return
+            }
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              labels: ['upstream'],
+              body: [
+                `npm reports **@deepseek-ai/dsh@${latest}**; the plugin is currently verified against **${verified}**.`,
+                '',
+                'Checklist:',
+                '- [ ] install the new DSH build and confirm the dock + dashboard still render',
+                '- [ ] run `npm test` and `npm run check` against the new runtime',
+                '- [ ] review the upstream changelog for changes to `sessionPersistence`, `session/event`, `webServer`, `deepseekAccount`, the slot API or theme tokens',
+                '- [ ] bump `.github/dsh-verified-version`, update the README compatibility table and CHANGELOG',
+                '- [ ] publish the matching patch/minor release',
+                '',
+                'Close this issue once the plugin is verified (or fixed) against that DSH version.',
+              ].join('\n'),
+            })

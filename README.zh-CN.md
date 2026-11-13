@@ -57,6 +57,8 @@ English: [README.md](README.md)
 
 支持范围**只升不降**：每个版本都会写明验证时的 DSH 版本，你能清楚知道「最新版」对某个插件版本意味着什么。
 
+这个承诺有一部分是自动化的：每周的 [`upstream-watch`](.github/workflows/upstream-watch.yml) 工作流向 npm 查询最新的 `@deepseek-ai/dsh`，一旦超过 [`.github/dsh-verified-version`](.github/dsh-verified-version)，就自动开一个带验证清单的 `upstream` issue——新版 DSH 不会无声无息地漏掉适配。
+
 ---
 
 ## 环境要求

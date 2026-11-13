@@ -57,6 +57,8 @@ More screenshots: [`docs/screenshots/`](docs/screenshots) — this-session scope
 
 Supported **DSH versions are raised, never lowered**: a release notes the exact DSH version it was verified against, so you always know what "latest" means for a given plugin version.
 
+The promise is partly automated: a weekly [`upstream-watch`](.github/workflows/upstream-watch.yml) workflow asks npm for the newest `@deepseek-ai/dsh` and, when it moved past [`.github/dsh-verified-version`](.github/dsh-verified-version), opens an `upstream` issue with a verification checklist. A new DSH release therefore cannot silently go unverified.
+
 ---
 
 ## Requirements

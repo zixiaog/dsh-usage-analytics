@@ -5,6 +5,16 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] - 2026-11-13
+
+### Added
+
+- **`upstream-watch` GitHub Actions workflow**: every Monday it asks npm for the newest
+  `@deepseek-ai/dsh`, compares it with [`.github/dsh-verified-version`](.github/dsh-verified-version)
+  and opens an `upstream`-labelled issue with a compatibility checklist when DSH has moved
+  on. Manual runs are supported via `workflow_dispatch`.
+- README now documents the automated watch next to the manual update policy.
+
 ## [0.1.1] - 2026-11-13
 
 ### Added
@@ -71,3 +81,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [0.1.0]: https://github.com/zixiaog/dsh-usage-analytics/releases/tag/v0.1.0
 [0.1.1]: https://github.com/zixiaog/dsh-usage-analytics/releases/tag/v0.1.1
+[0.1.2]: https://github.com/zixiaog/dsh-usage-analytics/releases/tag/v0.1.2
